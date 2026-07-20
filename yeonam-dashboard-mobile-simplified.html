@@ -1,0 +1,579 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>연암공과대학교 AI 카운셀러</title>
+<style>
+  :root{
+    --bg-deep:#0f0c29;
+    --bg-deep2:#1e2875;
+    --primary:#4F72FF;
+    --primary-dark:#3b4cc0;
+    --accent-purple:#8B5CF6;
+    --accent-pink:#e91e8c;
+    --accent-green:#10b981;
+    --accent-amber:#f59e0b;
+    --accent-red:#ef4444;
+    --ink:#111827;
+    --sub:#6b7280;
+    --faint:#9ca3af;
+    --line:#eef0f4;
+    --card:#ffffff;
+    --page:#f5f6fa;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',-apple-system,BlinkMacSystemFont,sans-serif;
+    background:#e8e9ee;
+    display:flex;
+    justify-content:center;
+    min-height:100vh;
+  }
+  .device{
+    width:100%;
+    max-width:412px;
+    min-height:100vh;
+    background:var(--page);
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 0 60px rgba(0,0,0,.25);
+  }
+  .screen{
+    display:none;
+    padding:0 0 92px;
+    min-height:100vh;
+    animation:fadeIn .25s ease;
+  }
+  .screen.active{display:block;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  /* ---------- Top header (shared) ---------- */
+  .topbar{
+    background:linear-gradient(135deg,var(--bg-deep) 0%,var(--bg-deep2) 55%,#2d1b69 100%);
+    color:#fff;
+    padding:18px 20px 22px;
+    border-radius:0 0 22px 22px;
+  }
+  .topbar-row{display:flex;align-items:center;justify-content:space-between;}
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand-badge{
+    width:34px;height:34px;border-radius:10px;background:var(--primary);
+    display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;
+  }
+  .brand-text .t1{font-size:12px;font-weight:800;letter-spacing:.02em;}
+  .brand-text .t2{font-size:10px;color:rgba(255,255,255,.55);}
+  .avatar-chip{
+    width:32px;height:32px;border-radius:50%;
+    background:rgba(255,255,255,.12);
+    display:flex;align-items:center;justify-content:center;font-size:15px;
+    border:1px solid rgba(255,255,255,.18);
+  }
+  .header-title{font-size:19px;font-weight:900;margin:16px 0 2px;}
+  .header-sub{font-size:12px;color:rgba(255,255,255,.6);}
+
+  /* ---------- Bottom nav ---------- */
+  .bottomnav{
+    position:absolute;
+    left:0;right:0;bottom:0;
+    background:#fff;
+    border-top:1px solid var(--line);
+    display:flex;
+    padding:8px 6px calc(8px + env(safe-area-inset-bottom));
+    z-index:50;
+  }
+  .navbtn{
+    flex:1;
+    display:flex;flex-direction:column;align-items:center;gap:3px;
+    background:none;border:none;padding:8px 2px;
+    color:var(--faint);
+    font-family:inherit;cursor:pointer;
+    position:relative;
+  }
+  .navbtn .icon{font-size:20px;line-height:1;}
+  .navbtn .label{font-size:10.5px;font-weight:600;}
+  .navbtn.active{color:var(--primary);}
+  .navbtn .dot{
+    position:absolute;top:2px;right:calc(50% - 16px);
+    width:7px;height:7px;border-radius:50%;background:var(--accent-red);
+    border:1.5px solid #fff;
+  }
+
+  /* ---------- Cards / generic ---------- */
+  .section{padding:16px 18px;}
+  .card{
+    background:var(--card);
+    border-radius:16px;
+    padding:16px 16px;
+    box-shadow:0 1px 4px rgba(0,0,0,.06);
+    margin-bottom:12px;
+  }
+  .card-title{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;color:var(--ink);margin-bottom:4px;}
+  .card-sub{font-size:11.5px;color:var(--faint);margin-bottom:12px;}
+
+  /* ===================== 1) 홈: 오늘의 AI 매니저 알림 ===================== */
+  .today-pill{
+    display:inline-flex;align-items:center;gap:6px;
+    background:rgba(255,255,255,.1);
+    padding:5px 12px;border-radius:20px;font-size:11px;margin-top:12px;
+  }
+  .notice-list{display:flex;flex-direction:column;gap:10px;}
+  .notice{
+    background:#fff;border-radius:14px;padding:14px 14px;
+    display:flex;gap:12px;align-items:flex-start;
+    box-shadow:0 1px 4px rgba(0,0,0,.06);
+    border-left:4px solid var(--line);
+  }
+  .notice.urgent{border-left-color:var(--accent-red);}
+  .notice.warn{border-left-color:var(--accent-amber);}
+  .notice.info{border-left-color:var(--primary);}
+  .notice.good{border-left-color:var(--accent-green);}
+  .notice-icon{font-size:20px;flex-shrink:0;margin-top:1px;}
+  .notice-body{flex:1;min-width:0;}
+  .notice-title{font-weight:700;font-size:13px;color:var(--ink);margin-bottom:3px;}
+  .notice-desc{font-size:12px;color:var(--sub);line-height:1.5;}
+  .notice-action{
+    margin-top:9px;display:inline-flex;align-items:center;gap:4px;
+    background:var(--page);color:var(--primary);border:none;
+    font-size:11.5px;font-weight:700;padding:6px 12px;border-radius:8px;
+    cursor:pointer;font-family:inherit;
+  }
+  .manager-summary{
+    display:flex;align-items:center;gap:12px;
+    background:linear-gradient(135deg,#f5f3ff,#ede9fe);
+    border:1.5px solid #ddd6fe;border-radius:14px;padding:14px 16px;margin-bottom:14px;
+  }
+  .manager-avatar{
+    width:42px;height:42px;border-radius:12px;flex-shrink:0;
+    background:linear-gradient(135deg,var(--accent-pink),var(--accent-purple));
+    display:flex;align-items:center;justify-content:center;font-size:20px;
+  }
+  .manager-msg{font-size:12.5px;color:#4c1d95;line-height:1.55;font-weight:500;}
+  .manager-msg b{color:#6d28d9;}
+
+  /* ===================== 2) AI 카운셀러 채팅 ===================== */
+  .chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 132px);}
+  .chat-log{flex:1;overflow-y:auto;padding:14px 16px 8px;display:flex;flex-direction:column;gap:10px;}
+  .bubble-row{display:flex;gap:8px;align-items:flex-end;}
+  .bubble-row.me{flex-direction:row-reverse;}
+  .bubble-avatar{
+    width:26px;height:26px;border-radius:50%;flex-shrink:0;
+    background:linear-gradient(135deg,var(--accent-pink),var(--accent-purple));
+    display:flex;align-items:center;justify-content:center;font-size:13px;
+  }
+  .bubble{
+    max-width:74%;padding:10px 13px;border-radius:16px;font-size:13px;line-height:1.55;
+  }
+  .bubble.ai{background:#fff;color:var(--ink);border-bottom-left-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+  .bubble.me{background:var(--primary);color:#fff;border-bottom-right-radius:4px;}
+  .chip-row{display:flex;gap:7px;flex-wrap:wrap;padding:2px 16px 12px;}
+  .chip{
+    background:#fff;border:1px solid var(--line);color:var(--primary-dark);
+    font-size:11.5px;font-weight:600;padding:7px 12px;border-radius:20px;
+    cursor:pointer;font-family:inherit;
+  }
+  .chat-input-bar{
+    display:flex;align-items:center;gap:8px;
+    padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+    background:#fff;border-top:1px solid var(--line);
+  }
+  .chat-input-bar input{
+    flex:1;border:1px solid var(--line);background:var(--page);
+    border-radius:22px;padding:11px 16px;font-size:13px;font-family:inherit;outline:none;
+  }
+  .send-btn{
+    width:40px;height:40px;border-radius:50%;border:none;background:var(--primary);
+    color:#fff;font-size:16px;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;flex-shrink:0;
+  }
+
+  /* ===================== 3) 성장 대시보드 ===================== */
+  .score-hero{
+    display:flex;align-items:center;justify-content:space-between;
+    background:linear-gradient(135deg,#1a1a2e 0%,#1e2875 50%,#2d1b69 100%);
+    color:#fff;border-radius:16px;padding:18px 20px;margin-bottom:14px;
+  }
+  .score-num{font-size:34px;font-weight:900;line-height:1;}
+  .score-num span{font-size:14px;font-weight:600;opacity:.6;}
+  .score-label{font-size:11px;opacity:.65;margin-top:4px;}
+  .score-badge{
+    background:rgba(255,255,255,.1);border-radius:10px;padding:8px 12px;text-align:center;font-size:11px;
+  }
+  .kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+  .kpi-card{background:#fff;border-radius:12px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+  .kpi-icon{font-size:16px;margin-bottom:5px;}
+  .kpi-label{font-size:10.5px;color:var(--faint);margin-bottom:3px;}
+  .kpi-val{font-size:14px;font-weight:800;color:var(--ink);}
+  .kpi-val small{font-size:10px;color:var(--accent-green);font-weight:700;}
+  .gap-row{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);}
+  .gap-row:last-child{border-bottom:none;}
+  .gap-name{flex:1;font-size:12.5px;font-weight:600;color:var(--ink);}
+  .gap-bar-track{width:88px;height:6px;background:#eef0f4;border-radius:99px;overflow:hidden;}
+  .gap-bar-fill{height:100%;border-radius:99px;}
+  .gap-val{width:34px;text-align:right;font-size:11.5px;font-weight:800;}
+
+  /* ===================== 4) 진로 메뉴 ===================== */
+  .career-hero{
+    background:linear-gradient(135deg,#065f46 0%,#10b981 100%);
+    border-radius:16px;padding:18px 20px;color:#fff;margin-bottom:14px;
+  }
+  .career-hero .t{font-size:14.5px;font-weight:800;margin-bottom:4px;}
+  .career-hero .d{font-size:11.5px;opacity:.85;line-height:1.5;}
+  .menu-list{display:flex;flex-direction:column;gap:8px;}
+  .menu-item{
+    display:flex;align-items:center;gap:12px;
+    background:#fff;border-radius:14px;padding:13px 14px;
+    box-shadow:0 1px 4px rgba(0,0,0,.06);
+    cursor:pointer;
+  }
+  .menu-icon{
+    width:38px;height:38px;border-radius:10px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;
+  }
+  .menu-text{flex:1;min-width:0;}
+  .menu-title{font-size:13px;font-weight:700;color:var(--ink);}
+  .menu-desc{font-size:11px;color:var(--faint);margin-top:1px;}
+  .menu-chevron{color:var(--faint);font-size:14px;}
+  .section-label{font-size:11.5px;font-weight:800;color:var(--faint);margin:16px 2px 8px;letter-spacing:.02em;}
+</style>
+</head>
+<body>
+<div class="device">
+
+  <!-- ============ SCREEN 1: 홈 (오늘의 AI 매니저 알림) ============ -->
+  <div class="screen active" id="screen-home">
+    <div class="topbar">
+      <div class="topbar-row">
+        <div class="brand">
+          <div class="brand-badge">🎓</div>
+          <div class="brand-text">
+            <div class="t1">연암공과대학교</div>
+            <div class="t2">AI Counselor</div>
+          </div>
+        </div>
+        <div class="avatar-chip">🙂</div>
+      </div>
+      <div class="header-title">안녕하세요, 김연암 님 👋</div>
+      <div class="header-sub">기계공학과 2학년 · 오늘도 좋은 하루 되세요</div>
+      <div class="today-pill">📅 <span id="todayDate">7월 20일 (월)</span> · 오늘 할 일 3개</div>
+    </div>
+
+    <div class="section">
+      <div class="manager-summary">
+        <div class="manager-avatar">🤖</div>
+        <div class="manager-msg">AI 매니저: <b>오늘은 결석 위험과 과제 마감</b>이 있어요. 아래 순서대로 확인해 주세요!</div>
+      </div>
+
+      <div class="notice-list">
+        <div class="notice urgent">
+          <div class="notice-icon">🚨</div>
+          <div class="notice-body">
+            <div class="notice-title">2교시 결석 위험 알림</div>
+            <div class="notice-desc">공학수학 출석률이 78%로 떨어졌어요. 오늘 수업에 꼭 참석해 주세요.</div>
+            <button class="notice-action" onclick="goTo('chat')">💬 AI 카운셀러와 상담하기</button>
+          </div>
+        </div>
+
+        <div class="notice warn">
+          <div class="notice-icon">⏰</div>
+          <div class="notice-body">
+            <div class="notice-title">과제 마감 D-1</div>
+            <div class="notice-desc">캡스톤디자인 중간보고서 제출까지 하루 남았어요.</div>
+            <button class="notice-action">📄 과제 확인하기</button>
+          </div>
+        </div>
+
+        <div class="notice info">
+          <div class="notice-icon">💜</div>
+          <div class="notice-body">
+            <div class="notice-title">주간 AI 심리 체크인</div>
+            <div class="notice-desc">이번 주 체크인을 아직 진행하지 않으셨어요. 2분이면 충분해요.</div>
+            <button class="notice-action" onclick="goTo('chat')">✅ 지금 체크인하기</button>
+          </div>
+        </div>
+
+        <div class="notice good">
+          <div class="notice-icon">🏆</div>
+          <div class="notice-body">
+            <div class="notice-title">마일리지 320P 달성</div>
+            <div class="notice-desc">골드 등급까지 480P 남았어요. 이번 주 비교과 참여로 채워보세요.</div>
+            <button class="notice-action" onclick="goTo('growth')">📊 성장 현황 보기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN 2: AI 카운셀러 (상담 채팅) ============ -->
+  <div class="screen" id="screen-chat">
+    <div class="topbar" style="border-radius:0 0 20px 20px;padding-bottom:16px;">
+      <div class="topbar-row">
+        <div class="brand">
+          <div class="brand-badge" style="background:linear-gradient(135deg,var(--accent-pink),var(--accent-purple));">🤖</div>
+          <div class="brand-text">
+            <div class="t1">AI 카운셀러</div>
+            <div class="t2">언제든 편하게 이야기해요 · 온라인</div>
+          </div>
+        </div>
+        <div class="avatar-chip" onclick="goTo('home')" style="cursor:pointer;">✕</div>
+      </div>
+    </div>
+
+    <div class="chat-wrap">
+      <div class="chip-row">
+        <button class="chip" onclick="quickChat('학업 스트레스가 있어요')">📚 학업 스트레스</button>
+        <button class="chip" onclick="quickChat('진로 고민이 있어요')">🎯 진로 고민</button>
+        <button class="chip" onclick="quickChat('심리 체크인 할게요')">💜 심리 체크인</button>
+      </div>
+      <div class="chat-log" id="chatLog">
+        <div class="bubble-row">
+          <div class="bubble-avatar">🤖</div>
+          <div class="bubble ai">안녕하세요, 연암 님! 오늘 공학수학 출석 알림 보셨죠? 혹시 요즘 수업 참석이 힘든 이유가 있을까요?</div>
+        </div>
+        <div class="bubble-row me">
+          <div class="bubble me">요즘 과제가 많아서 좀 지쳐있어요.</div>
+        </div>
+        <div class="bubble-row">
+          <div class="bubble-avatar">🤖</div>
+          <div class="bubble ai">많이 힘드셨겠어요. 캡스톤디자인 마감이 겹쳐서 더 그런 것 같네요. 우선순위를 같이 정리해볼까요? 학습지원실 연계 스터디도 안내해드릴 수 있어요.</div>
+        </div>
+      </div>
+      <div class="chat-input-bar">
+        <input type="text" id="chatInput" placeholder="메시지를 입력하세요" onkeydown="if(event.key==='Enter')sendChat()">
+        <button class="send-btn" onclick="sendChat()">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN 3: 성장 대시보드 ============ -->
+  <div class="screen" id="screen-growth">
+    <div class="topbar">
+      <div class="topbar-row">
+        <div class="brand">
+          <div class="brand-badge">📊</div>
+          <div class="brand-text">
+            <div class="t1">성장 대시보드</div>
+            <div class="t2">김연암 · 기계공학과 2학년</div>
+          </div>
+        </div>
+        <div class="avatar-chip">🙂</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="score-hero">
+        <div>
+          <div class="score-num">72<span>/100</span></div>
+          <div class="score-label">AI 케어링 점수 · 저위험 · Lv.3 발전</div>
+        </div>
+        <div class="score-badge">🔥<br>7일 연속<br>체크인</div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon">⬆️</div>
+          <div class="kpi-label">역량 종합 레벨</div>
+          <div class="kpi-val">Lv.3 <small>→ Lv.4</small></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">🏆</div>
+          <div class="kpi-label">마일리지</div>
+          <div class="kpi-val">320P <small>→ 800P</small></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">💼</div>
+          <div class="kpi-label">취업 준비도</div>
+          <div class="kpi-val">64% <small>→ 85%</small></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">🛡️</div>
+          <div class="kpi-label">위기 단계</div>
+          <div class="kpi-val" style="color:var(--accent-green);">저위험</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🎯 역량 Gap 현황</div>
+        <div class="card-sub">강점은 유지하고, Gap이 큰 항목부터 채워보세요</div>
+        <div class="gap-row">
+          <div class="gap-name">배려소통</div>
+          <div class="gap-bar-track"><div class="gap-bar-fill" style="width:80%;background:var(--accent-green);"></div></div>
+          <div class="gap-val" style="color:var(--accent-green);">80</div>
+        </div>
+        <div class="gap-row">
+          <div class="gap-name">창의융합</div>
+          <div class="gap-bar-track"><div class="gap-bar-fill" style="width:72%;background:var(--primary);"></div></div>
+          <div class="gap-val" style="color:var(--primary);">72</div>
+        </div>
+        <div class="gap-row">
+          <div class="gap-name">기계설계 역량</div>
+          <div class="gap-bar-track"><div class="gap-bar-fill" style="width:63%;background:var(--primary);"></div></div>
+          <div class="gap-val">63</div>
+        </div>
+        <div class="gap-row">
+          <div class="gap-name">도전</div>
+          <div class="gap-bar-track"><div class="gap-bar-fill" style="width:45%;background:var(--accent-purple);"></div></div>
+          <div class="gap-val" style="color:var(--accent-purple);">45</div>
+        </div>
+        <div class="gap-row">
+          <div class="gap-name">AI 활용</div>
+          <div class="gap-bar-track"><div class="gap-bar-fill" style="width:43%;background:var(--accent-amber);"></div></div>
+          <div class="gap-val" style="color:var(--accent-amber);">43</div>
+        </div>
+        <div class="gap-row">
+          <div class="gap-name">제조공정 역량</div>
+          <div class="gap-bar-track"><div class="gap-bar-fill" style="width:42%;background:var(--accent-red);"></div></div>
+          <div class="gap-val" style="color:var(--accent-red);">42</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN 4: 진로 메뉴 ============ -->
+  <div class="screen" id="screen-career">
+    <div class="topbar">
+      <div class="topbar-row">
+        <div class="brand">
+          <div class="brand-badge" style="background:var(--accent-green);">🧭</div>
+          <div class="brand-text">
+            <div class="t1">진로</div>
+            <div class="t2">나에게 맞는 다음 단계를 찾아보세요</div>
+          </div>
+        </div>
+        <div class="avatar-chip">🙂</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="career-hero">
+        <div class="t">🚀 진로 매칭 로드맵 · 도전 단계</div>
+        <div class="d">기계설계기사 취득과 LG전자 현장실습 지원이 다음 목표예요.</div>
+      </div>
+
+      <div class="section-label">진로 · 취업</div>
+      <div class="menu-list">
+        <div class="menu-item">
+          <div class="menu-icon" style="background:var(--primary);">🎯</div>
+          <div class="menu-text">
+            <div class="menu-title">AI 진로·취업 매칭</div>
+            <div class="menu-desc">역량 데이터 기반 맞춤 기업·직무 추천</div>
+          </div>
+          <div class="menu-chevron">›</div>
+        </div>
+        <div class="menu-item">
+          <div class="menu-icon" style="background:var(--accent-purple);">📁</div>
+          <div class="menu-text">
+            <div class="menu-title">e-Portfolio</div>
+            <div class="menu-desc">활동·역량 기록을 한 곳에서 관리</div>
+          </div>
+          <div class="menu-chevron">›</div>
+        </div>
+        <div class="menu-item">
+          <div class="menu-icon" style="background:var(--accent-amber);">🏅</div>
+          <div class="menu-text">
+            <div class="menu-title">마일리지 · 디지털 배지함</div>
+            <div class="menu-desc">뉴칼라 마일리지 320P · 배지 6개 보유</div>
+          </div>
+          <div class="menu-chevron">›</div>
+        </div>
+      </div>
+
+      <div class="section-label">프로그램</div>
+      <div class="menu-list">
+        <div class="menu-item">
+          <div class="menu-icon" style="background:var(--accent-green);">🧩</div>
+          <div class="menu-text">
+            <div class="menu-title">비교과 프로그램</div>
+            <div class="menu-desc">13개 마이크로디그리 중 나에게 맞는 과정</div>
+          </div>
+          <div class="menu-chevron">›</div>
+        </div>
+        <div class="menu-item">
+          <div class="menu-icon" style="background:#ec4899;">🏭</div>
+          <div class="menu-text">
+            <div class="menu-title">채용·현장실습 정보</div>
+            <div class="menu-desc">LG전자 등 관심 기업 현장실습 공고</div>
+          </div>
+          <div class="menu-chevron">›</div>
+        </div>
+        <div class="menu-item">
+          <div class="menu-icon" style="background:#0891b2;">📅</div>
+          <div class="menu-text">
+            <div class="menu-title">상담 예약</div>
+            <div class="menu-desc">교원 1:1 진로 상담 신청하기</div>
+          </div>
+          <div class="menu-chevron">›</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ BOTTOM NAV ============ -->
+  <div class="bottomnav">
+    <button class="navbtn active" data-tab="home" onclick="goTo('home')">
+      <span class="icon">🏠</span><span class="label">홈</span>
+    </button>
+    <button class="navbtn" data-tab="chat" onclick="goTo('chat')">
+      <span class="icon">💬</span><span class="label">AI 카운셀러</span>
+    </button>
+    <button class="navbtn" data-tab="growth" onclick="goTo('growth')">
+      <span class="icon">📊</span><span class="label">성장</span>
+    </button>
+    <button class="navbtn" data-tab="career" onclick="goTo('career')">
+      <span class="icon">🧭</span><span class="label">진로</span>
+    </button>
+  </div>
+</div>
+
+<script>
+function goTo(tab){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+tab).classList.add('active');
+  document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  window.scrollTo(0,0);
+}
+
+const aiReplies = [
+  "네, 잘 알겠어요. 조금 더 구체적으로 이야기해 주실 수 있을까요?",
+  "그 마음 충분히 이해돼요. 지금 가장 부담되는 부분은 어떤 걸까요?",
+  "좋아요, 함께 정리해봐요. 우선 이번 주에 처리할 일부터 나눠볼까요?",
+  "잘 하고 계세요. 필요하시면 교원 1:1 상담도 연결해드릴 수 있어요."
+];
+function appendBubble(text, me){
+  const log = document.getElementById('chatLog');
+  const row = document.createElement('div');
+  row.className = 'bubble-row' + (me ? ' me' : '');
+  row.innerHTML = me
+    ? `<div class="bubble me"></div>`
+    : `<div class="bubble-avatar">🤖</div><div class="bubble ai"></div>`;
+  row.querySelector('.bubble').textContent = text;
+  log.appendChild(row);
+  log.scrollTop = log.scrollHeight;
+}
+function sendChat(){
+  const input = document.getElementById('chatInput');
+  const val = input.value.trim();
+  if(!val) return;
+  appendBubble(val, true);
+  input.value = '';
+  setTimeout(()=>{
+    appendBubble(aiReplies[Math.floor(Math.random()*aiReplies.length)], false);
+  }, 500);
+}
+function quickChat(text){
+  appendBubble(text, true);
+  setTimeout(()=>{
+    appendBubble(aiReplies[Math.floor(Math.random()*aiReplies.length)], false);
+  }, 500);
+}
+
+(function setDate(){
+  const d = new Date();
+  const days = ['일','월','화','수','목','금','토'];
+  document.getElementById('todayDate').textContent =
+    (d.getMonth()+1)+"월 "+d.getDate()+"일 ("+days[d.getDay()]+")";
+})();
+</script>
+</body>
+</html>
