@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>프로그램 운영 출장 준비물 체크리스트</title>
+<style>
+  :root {
+    --ink: #2b2b2b;
+    --sub: #6b6b6b;
+    --line: #ddd6cc;
+    --paper: #fdfcf9;
+    --accent: #3b5a4a;
+    --accent-soft: #e8ede9;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 40px 20px;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    display: flex;
+    justify-content: center;
+  }
+  .sheet {
+    width: 100%;
+    max-width: 680px;
+  }
+  h1 {
+    font-size: 22px;
+    margin: 0 0 4px;
+    letter-spacing: -0.3px;
+  }
+  .meta {
+    color: var(--sub);
+    font-size: 13px;
+    margin-bottom: 28px;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 16px;
+  }
+  .meta span b { color: var(--ink); }
+  .meta-field {
+    border-bottom: 1px solid var(--sub);
+    display: inline-block;
+    min-width: 100px;
+  }
+  section {
+    margin-bottom: 26px;
+  }
+  h2 {
+    font-size: 14px;
+    color: var(--accent);
+    background: var(--accent-soft);
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 3px;
+    margin: 0 0 10px;
+  }
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 4px;
+    border-bottom: 1px dashed var(--line);
+    font-size: 15px;
+  }
+  li:last-child { border-bottom: none; }
+  input[type="checkbox"] {
+    width: 17px;
+    height: 17px;
+    accent-color: var(--accent);
+    flex-shrink: 0;
+  }
+  .checked label {
+    color: var(--sub);
+    text-decoration: line-through;
+  }
+  .note {
+    font-size: 12px;
+    color: var(--sub);
+    margin-top: 40px;
+    border-top: 1px solid var(--line);
+    padding-top: 12px;
+  }
+  @media print {
+    body { padding: 0; }
+    .note { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+  <h1>프로그램 운영 출장 준비물 체크리스트</h1>
+  <div class="meta">
+    <span>프로그램명: <span class="meta-field">&nbsp;</span></span>
+    <span>출장일: <span class="meta-field">&nbsp;</span></span>
+    <span>장소: <span class="meta-field">&nbsp;</span></span>
+  </div>
+
+  <section>
+    <h2>📋 서류/행정</h2>
+    <ul id="list1"></ul>
+  </section>
+
+  <section>
+    <h2>✏️ 문구/소모품</h2>
+    <ul id="list2"></ul>
+  </section>
+
+  <section>
+    <h2>🖥️ 현장 세팅</h2>
+    <ul id="list3"></ul>
+  </section>
+
+  <section>
+    <h2>➕ 기타</h2>
+    <ul id="list4"></ul>
+  </section>
+
+  <div class="note">체크 상태는 저장되지 않으니, 출장 전 확인용으로 사용 후 인쇄하거나 캡처해 두세요.</div>
+</div>
+
+<script>
+const data = {
+  list1: ["강의안 (인쇄본 + 파일 백업)", "참석자 명단(단) 및 서명부", "초상권 동의서", "명함"],
+  list2: ["명찰 (+ 네임펜)", "클립보드 (글판)", "볼펜 (여분 포함)", "포스트잇", "테이프, 클립 등 자잘한 소모품", "칼", "가위"],
+  list3: ["노트북 + 충전기", "현수막", "X배너", "X배너 거치대", "삼각대", "멀티탭"],
+  list4: ["여분 인쇄물 (자료 분실 대비)", "보조배터리", "다과/간식", "상비약"]
+};
+
+Object.entries(data).forEach(([id, items]) => {
+  const ul = document.getElementById(id);
+  items.forEach((text, i) => {
+    const li = document.createElement("li");
+    const cbId = id + "_" + i;
+    li.innerHTML = `<input type="checkbox" id="${cbId}"><label for="${cbId}">${text}</label>`;
+    const cb = li.querySelector("input");
+    cb.addEventListener("change", () => li.classList.toggle("checked", cb.checked));
+    ul.appendChild(li);
+  });
+});
+</script>
+</body>
+</html>
